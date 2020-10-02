@@ -82,23 +82,14 @@ export default class AminatedList extends Component {
                 }
                 this.props.handleSwap(this.state.srcKey, key);
                 this.setState({
-                    // contents: newContent,
-                    // srcKey: null,
-                    // swap: {
-                    //     srcKey:this.state.srcKey,
-                    //     destKey:key
-                    // }
                     ...this.state,
-                    //destKey: key,
                     srcKey: null
                 })
-
             }
             else {
                 this.setState({
                     ...this.state,
                     srcKey: key,
-                    //destKey: null
                 })
             }
         }
