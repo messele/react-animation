@@ -4,6 +4,7 @@ import './App.css';
 import AnimatedList from './AminatedList'
 let myList = Array.from(Array(80).keys())
 
+
 class App extends Component {
 
   constructor() {

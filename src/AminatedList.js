@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-// import ReactDOM from 'react-dom'
+import ReactDOM from 'react-dom'
 
 const ANIMATION_DELAY = '500ms';
 /**
@@ -11,7 +11,7 @@ export default class AminatedList extends Component {
         super();
         this.clickTile = this.clickTile.bind(this);
         this.moveNode = this.moveNode.bind(this);
-        this.refs = React.createRef()
+        this.refs = []
         this.state = {}
     }
     
@@ -21,25 +21,28 @@ export default class AminatedList extends Component {
         let hasChanged = false;
         for(let x in previousProps.contents) {
             if(previousProps.contents[x] !== this.props.contents[x]) {
-                changeTracker[previousProps.contents[x]] = x;
+                changeTracker[previousProps.contents[x]] = {
+                    oldPos: x,
+                    pos : this.props.contents.findIndex(v => v === previousProps.contents[x])
+                }
                 hasChanged = true;
             }
         }
 
         if(hasChanged) {
             for(let key of Object.keys(changeTracker)) {
-                this.moveNode(key, changeTracker[key])
+                this.moveNode(changeTracker[key])
             }
         }
     }
 
-    moveNode(key, oldPos) {
+    moveNode({pos, oldPos}) {
         const //pos = this.props.contents.findIndex(x => x === key),
             //oldPos = this.oldNodPos[key],
-            node = document.getElementById(key),
-            oldNode = document.getElementById(this.props.contents[oldPos]);
+            node = ReactDOM.findDOMNode(this[`refs${pos}`]),//document.getElementById(key),
+            oldNode = ReactDOM.findDOMNode(this[`refs${oldPos}`])//document.getElementById(this.props.contents[oldPos]);
 
-        console.log(`Moving node with value ${key}`)
+        console.log(`Moving node :  {currentPos=${pos}, oldPos=${oldPos}}`)
         
         // Get the delta between the old and new positions.
         const xDelta = node.getBoundingClientRect().x - oldNode.getBoundingClientRect().x,
@@ -100,13 +103,13 @@ export default class AminatedList extends Component {
             }
         }
     }
-    // refsCollection={}
+    
 
     render() {
         return <div className="tileWrapper">
-            {this.props.contents.map(l =>
+            {this.props.contents.map((l, idx) =>
                 <Tile
-                    ref={l}
+                    ref={(ref) => this[`refs${idx}`] = ref}
                     key={l}
                     tileClass={`tile ${l === this.state.srcKey ? "selected" : ""}`}
                     value={l}
@@ -117,7 +120,7 @@ export default class AminatedList extends Component {
 
 }
 
-const Tile = ({ tileClass, value, handleClick }, ref) =>
-    <div id={value} className={tileClass} onClick={(e) => handleClick(e, value)}>
-        <span>{value}</span> </div>
+const Tile = React.forwardRef(({ tileClass, value, handleClick} , ref) =>
+    <div ref={ref} className={tileClass} onClick={(e) => handleClick(e, value)}>
+        <span>{value}</span> </div>)
 
