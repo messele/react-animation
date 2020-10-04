@@ -102,7 +102,6 @@ export default class TileWrapper extends Component {
 
     render() {
         return <div className="tileWrapper">
-            <h1 className="tileWrapper-header">ANIMATED LIST</h1>
             <div className="tileWrapper-content">
                 {this.props.tiles.map((l, idx) =>
                     <Tile

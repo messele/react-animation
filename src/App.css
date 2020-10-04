@@ -1,8 +1,10 @@
 .App {
   display:flex;
-  /*flex-direction: column;*/
+  flex-direction: column;
   justify-content: space-evenly;
   text-align: center;
+  width:80%;
+  margin: auto;
 }
 .controls{
   margin:auto;
@@ -12,10 +14,18 @@
   justify-items: center;
   max-width: max-content;
 }
+.control-group{
+  display:flex;
+  flex-direction: column;
+}
+.control-group span{
+  text-align:left;
+}
 input {
   width:50px;
   height:20px;
-  margin:20px;
+  margin-top:1em;
+  margin-bottom:2em;
 }
 .App-logo {
   height: 40vmin;
@@ -30,15 +40,20 @@ input {
 
 .App-header {
   background-color: #282c34;
-  min-height: 100vh;
+  /* min-height: 100vh; */
+  padding:20px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
-  color: white;
+  color:white;
+  margin:auto;
+  width:100%;
 }
-
+.App>div{
+  display:flex;
+}
 .App-link {
   color: #61dafb;
 }
