@@ -1,12 +1,12 @@
 import React, { Component } from 'react'
 import ReactDOM from 'react-dom'
 
-const ANIMATION_DELAY = '500ms';
+const ANIMATION_SPEED = 500;
 /**
  * Implementation of swapping elements in the list
  * inspired by "Animating the unanimatable." from https://medium.com/developers-writing/animating-the-unanimatable-1346a5aab3cd
  */
-export default class AminatedList extends Component {
+export default class TileWrapper extends Component {
     constructor() {
         super();
         this.clickTile = this.clickTile.bind(this);
@@ -19,11 +19,11 @@ export default class AminatedList extends Component {
         // figure out what changed in the new props
         let changeTracker = {}
         let hasChanged = false;
-        for (let x in previousProps.contents) {
-            if (previousProps.contents[x] !== this.props.contents[x]) {
-                changeTracker[previousProps.contents[x]] = {
+        for (let x in previousProps.tiles) {
+            if (previousProps.tiles[x] !== this.props.tiles[x]) {
+                changeTracker[previousProps.tiles[x]] = {
                     oldPos: x,
-                    pos: this.props.contents.findIndex(v => v === previousProps.contents[x])
+                    pos: this.props.tiles.findIndex(v => v === previousProps.tiles[x])
                 }
                 hasChanged = true;
             }
@@ -44,11 +44,15 @@ export default class AminatedList extends Component {
 
         console.log(`Moving node :  {currentPos=${pos}, oldPos=${oldPos}}`)
 
+        if(!node || !oldNode) {
+           // do nothing for a node that has been newly added or removed.
+            return;
+        }
         // Get the delta between the old and new positions.
         const xDelta = node.getBoundingClientRect().x - oldNode.getBoundingClientRect().x,
             yDelta = node.getBoundingClientRect().y - oldNode.getBoundingClientRect().y
 
-
+        const animationSpeed = this.props.animationSpeed || ANIMATION_SPEED
         // invert the position to original position.    
         requestAnimationFrame(() => {
             node.style.transform = `translate(${-xDelta}px, ${-yDelta}px)`;
@@ -63,9 +67,9 @@ export default class AminatedList extends Component {
              */
             requestAnimationFrame(() => {
                 node.style.transform = '';
-                node.style.transition = `transform ${ANIMATION_DELAY}`
+                node.style.transition = `transform ${animationSpeed}ms`
                 oldNode.style.transform = '';
-                oldNode.style.transition = `transform ${ANIMATION_DELAY}`
+                oldNode.style.transition = `transform ${animationSpeed}ms`
 
             })
         })
@@ -97,10 +101,10 @@ export default class AminatedList extends Component {
 
 
     render() {
-        return <div>
-            <h1>ANIMATED LIST</h1>
-            <div className="tileWrapper">
-                {this.props.contents.map((l, idx) =>
+        return <div className="tileWrapper">
+            <h1 className="tileWrapper-header">ANIMATED LIST</h1>
+            <div className="tileWrapper-content">
+                {this.props.tiles.map((l, idx) =>
                     <Tile
                         ref={(ref) => this[`refs${idx}`] = ref}
                         key={l}

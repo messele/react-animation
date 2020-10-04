@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 // import logo from './logo.svg';
 import './App.css';
-import AnimatedList from './AminatedList'
-let myList = Array.from(Array(80).keys())
+import TileWrapper from './TileWrapper';
+
+const DEFAULT_LIST = Array.from(Array(20).keys()).map(x=>x+1);
 
 
 class App extends Component {
@@ -10,26 +11,57 @@ class App extends Component {
   constructor() {
     super();
     this.handleSwap = this.handleSwap.bind(this)
+    this.addTiles   = this.addTiles.bind(this)
+    this.changeAnimationSpeed = this.changeAnimationSpeed.bind(this)
     this.state = {
-      contents : myList
+      tiles : DEFAULT_LIST,
+      animationSpeed: 500
     }
   }
+  addTiles (e) {
+    const numTiles = parseInt(e.target.value);
+    if(numTiles > 0) {
+      this.setState({
+        ...this.state,
+        tiles:Array.from(Array(numTiles).keys()).map(x=>x+1)
+      })
+    }
+
+  }
+  changeAnimationSpeed (e) {
+    const animationSpeed = parseInt(e.target.value);
+    if(animationSpeed > 0) {
+      this.setState({
+        ...this.state,
+        animationSpeed:animationSpeed
+      })
+    }
+
+  }
   handleSwap(src, dest) {
-    const newContent = [...this.state.contents],
-    srcIdx = newContent.findIndex(l => l === src),
-    destIdx = newContent.findIndex(l => l === dest);
+    const newTiles = [...this.state.tiles],
+    srcIdx = newTiles.findIndex(l => l === src),
+    destIdx = newTiles.findIndex(l => l === dest);
   
-    newContent[destIdx] = src
-    newContent[srcIdx] =  dest
+    if(srcIdx < 0 || destIdx < 0 ) {
+      console.error(`Cannot swap: invalid src and dest values: {src=${src}, dest=${dest}}`);
+      return;
+    }
+    newTiles[destIdx] = src
+    newTiles[srcIdx] =  dest
 
     this.setState ({
-      contents:newContent
+      tiles:newTiles
     })
   }
 
   render() {
   return (
     <div className="App">
+      <div className="controls">
+        <div><span>Number of Tiles:</span><input type="number" value={this.state.tiles.length} onChange={this.addTiles}></input></div>
+         <div><span>Speed:</span><input type="number" value={this.state.animationSpeed} onChange={this.changeAnimationSpeed}></input></div>
+      </div>
       {/* <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
@@ -44,7 +76,8 @@ class App extends Component {
           Learn React
         </a>
       </header> */}
-      <AnimatedList contents={this.state.contents} handleSwap={this.handleSwap} />
+      <TileWrapper {...this.state} handleSwap={this.handleSwap} />
+      
     </div>
   );
 }
