@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 // import logo from './logo.svg';
 import './App.css';
 import TileWrapper from './TileWrapper';
+import InfoWrapper from './InfoWrapper'
 
 const DEFAULT_LENGTH = 20;
 
@@ -16,6 +17,7 @@ class App extends Component {
     this.addTiles = this.addTiles.bind(this)
     this.changeAnimationSpeed = this.changeAnimationSpeed.bind(this)
     this.shuffleTiles         = this.shuffleTiles.bind(this)
+    this.changeTileValues     = this.changeTileValues.bind(this)
     this.state = {
       tiles: createTiles(DEFAULT_LENGTH),
       animationSpeed: 500
@@ -30,7 +32,21 @@ class App extends Component {
       })
     }
   }
+  changeTileValues(e){
+    let tiles = (e.target.value || "").split(",").map(v => {
+      if(v) {
+        return parseInt(v);
+      }
+      return null;
+    })
+    
+    this.setState({
+      ...this.state,
+      tiles
+    })
+  }
   shuffleTiles() {
+    // calculate transitions to get to this shuffle
     this.setState({
       ...this.state,
       tiles: _.shuffle(this.state.tiles)
@@ -69,9 +85,10 @@ class App extends Component {
         <header className="App-header">ANIMATED LIST</header>
         <div>
           <div className="controls">
-            <div className="control-group"><span>Tiles:</span><input type="number" value={this.state.tiles.length} onChange={this.addTiles}></input></div>
+          <div className="control-group"><InfoWrapper message="Enter the number of tiles"><div className="control-group"><span>Tiles:</span><input type="number" value={this.state.tiles.length} onChange={this.addTiles}></input></div></InfoWrapper></div>
             <div className="control-group"><span>Speed:</span><input type="number" value={this.state.animationSpeed} onChange={this.changeAnimationSpeed}></input></div>
             <div className="control-group"><button className="btn btn-primary" onClick={this.shuffleTiles}>Shuffle Tiles</button></div>
+            <div className="control-group"><input value={this.state.tiles} onChange={this.changeTileValues}></input></div>
           </div>
           {/* <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />

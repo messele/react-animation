@@ -20,13 +20,18 @@ export default class TileWrapper extends Component {
                 this.props.handleSwap(this.state.srcKey, key);
                 this.setState({
                     ...this.state,
-                    srcKey: null
+                    srcKey: null,
+                    lastSelected: {
+                        src: this.state.srcKey,
+                        dest: key
+                    }
                 })
             }
             else {
                 this.setState({
                     ...this.state,
                     srcKey: key,
+                    lastSelected: null
                 })
             }
         }
@@ -37,12 +42,14 @@ export default class TileWrapper extends Component {
         return <div className="tileWrapper">
             <div className="tileWrapper-content">
                 <AnimatedList animationSpeed={this.props.animationSpeed}>
-                {this.props.tiles.map((l, idx) =>
+                {this.props.tiles.map((value, idx) =>
                     <Tile
                         //ref={(ref) => this[`refs${idx}`] = ref}
-                        key={l}
-                        tileClass={`tile ${l === this.state.srcKey ? "selected" : ""}`}
-                        value={l}
+                        key={value}
+                        tileClass={`tile ${value === this.state.srcKey 
+                            || (this.state.lastSelected ||{}).src === value 
+                            || (this.state.lastSelected ||{}).dest === value ? "selected" : ""}`}
+                        value={value}
                         handleClick={this.clickTile} />
                 )}
                 </AnimatedList>
@@ -52,7 +59,17 @@ export default class TileWrapper extends Component {
 
 }
 
-const Tile = React.forwardRef(({ tileClass, value, handleClick }, ref) =>
-    <div ref={ref} className={tileClass} onClick={(e) => handleClick(e, value)}>
-        <span>{value}</span> </div>)
+// const Tile = React.forwardRef(({ tileClass, value, handleClick }, ref) =>
+//     <div ref={ref} className={tileClass} onClick={(e) => handleClick(e, value)}>
+//         <span>{value}</span> </div>)
 
+// const Tile = ({ tileClass, value, handleClick }) =>
+//     <div className={tileClass} onClick={(e) => handleClick(e, value)}>
+//         <span>{value}</span> </div>
+
+class Tile extends Component {
+    render() {
+        return <div className={this.props.tileClass} onClick={(e) => this.props.handleClick(e, this.props.value)}>
+       <span>{this.props.value}</span> </div> 
+    }
+}

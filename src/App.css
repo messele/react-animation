@@ -83,7 +83,7 @@ input {
   flex-flow:wrap;
 }
 .tile {
-  transition: 500ms ease;
+  transition: 500ms ease-in-out;
   display: flex;
   min-height: 100px;
   min-width: 100px;
@@ -96,10 +96,23 @@ input {
 }
 .tile:hover {
   cursor: pointer;
+  box-shadow:0 0 6px seagreen
 }
 .tile.selected {
  opacity: 0.5;
 }
 .tile span {
   margin: auto;
+}
+.tooltip{
+  transition: transform 1s linear;
+}
+.tooltip-wrapper {
+  position:absolute;
+  width: 100%;
+  height: 100%;
+  /* opacity: "0" */
+}
+.toolTip.hidden {
+  transform:scaleY(0);
 }

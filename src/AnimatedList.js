@@ -1,10 +1,14 @@
+import _ from 'lodash'
 import React, { Component, cloneElement } from 'react'
+import {findDOMNode}  from 'react-dom'
 
 const ANIMATION_SPEED = 500;
 
 /**
  * Implementation of swapping elements in the list
  * inspired by "Animating the unanimatable." from https://medium.com/developers-writing/animating-the-unanimatable-1346a5aab3cd
+ * 
+ * Note: the Animation works only on children that have a Forward Ref.
  */
 export default class extends Component {
 
@@ -12,35 +16,56 @@ export default class extends Component {
         // figure out what changed in the new props
         let changeTracker = {}
         let hasChanged = false;
+        let delay  = 0;
         for (let x in previousProps.children) {
+            /**
+             * For each of the children track the children whose position was changed.
+             */
             if (previousProps.children[x] && this.props.children[x] && 
                 previousProps.children[x].key !== this.props.children[x].key) {
-                changeTracker[previousProps.children[x].key] = {
-                    oldPos: x,
-                    pos: this.props.children.findIndex(v => v.key === previousProps.children[x].key)
+
+                const pos = this.props.children.findIndex(v => v.key === previousProps.children[x].key),
+                    oldPos = parseInt(x),
+                    currDelay = (_.find(changeTracker, t => (t.oldPos === pos && t.pos === oldPos)) ||{}).delay 
+                
+                if(pos < 0) {
+                    /** short circuit as the child has been deleted. */
+                    continue;
                 }
+                changeTracker[previousProps.children[x].key] = {
+                    oldPos,
+                    pos,
+                    delay: currDelay !==  undefined ?  currDelay : delay
+                }
+                // introduce a minor delay to fix the visual anomaly
+                if(currDelay ===  undefined) delay += 1/this.props.children.length;
                 hasChanged = true;
             }
         }
 
         if (hasChanged) {
             for (let key of Object.keys(changeTracker)) {
-                this.moveNode(changeTracker[key])
+                this.simulateNodeMove(changeTracker[key])
             }
         }
     }
-    moveNode({ pos, oldPos }) {
-        const //pos = this.props.contents.findIndex(x => x === key),
-            //oldPos = this.oldNodPos[key],
-            node = this[`ref${this.props.children[pos].key}`],
-            oldNode = this[`ref${this.props.children[oldPos].key}`]
 
-        console.log(`Moving node :  {currentPos=${pos}, oldPos=${oldPos}}`)
+    simulateNodeMove({ pos, oldPos, delay}) {
 
-        if (!node || !oldNode) {
-            // do nothing for a node that has been newly added or removed.
+        if(pos === undefined || !oldPos === undefined || !this.props.children[pos] || !this.props.children[oldPos]) {
+            //defensive: this only happens if a node has been added or removed.
             return;
         }
+        const node      = findDOMNode(this[getRefKey(this.props.children[pos])]),
+            oldNode     = findDOMNode(this[getRefKey(this.props.children[oldPos])])
+
+        if (!node || !oldNode) {
+            // Defensive: Bail out if this is a new node.
+            return;
+        }
+        console.log(`Moving node :  {currentPos=${pos}, oldPos=${oldPos}}`)
+
+       
         // Get the delta between the old and new positions.
         const xDelta = node.getBoundingClientRect().x - oldNode.getBoundingClientRect().x,
             yDelta = node.getBoundingClientRect().y - oldNode.getBoundingClientRect().y
@@ -60,9 +85,9 @@ export default class extends Component {
              */
             requestAnimationFrame(() => {
                 node.style.transform = '';
-                node.style.transition = `transform ${animationSpeed}ms`
+                node.style.transition = `transform ${animationSpeed}ms ease ${animationSpeed * delay}ms`
                 oldNode.style.transform = '';
-                oldNode.style.transition = `transform ${animationSpeed}ms`
+                oldNode.style.transition = `transform ${animationSpeed}ms ease ${animationSpeed * delay}ms`
 
             })
         })
@@ -72,19 +97,33 @@ export default class extends Component {
     createChildrenWithRefs() {
         // To capture the dom element. clone the element and add a ref.
         return this.props.children.map(child =>
-            cloneElement(child, {
-                ref: (element) => {
-                    /**
-                     * Note this will only work if the child has a Forward Ref
-                     */
+           {
+               const element = <ListItemWrapper key={child.key} originalItem={child}/>
+            return cloneElement(
+                element, {
+                 ref: (element) => {
                     if (!element) {
                         return;
                     }
-                    this[`ref${child.key}`] = element
-                },
-            }),
-        );
-    }
+                    this[getRefKey(child)] = element
+                }})
+                // return <ListItemWrapper key={child.key} originalItem={child} ref={
+                //     element => this[getRefKey(child)] = element}/>
+            }
+            
+            // cloneElement(child, {
+            //     ref: (element) => {
+            //         /**
+            //          * Note this will only work if the child has a Forward Ref
+            //          */
+            //         if (!element) {
+            //             return;
+            //         }
+            //         this[getRefKey(child)] = element
+            //     },
+            // }),
+        // );
+        )};
 
 
     render() {
@@ -95,3 +134,10 @@ export default class extends Component {
         )
     }
 }
+
+const ListItemWrapper = React.forwardRef(({originalItem}, ref) => {
+  const OriginalItem = originalItem.type;
+  return <OriginalItem ref={ref} {...originalItem.props} />
+});
+
+const getRefKey = (child) => `ref${child.key}`
